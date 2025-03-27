@@ -104,13 +104,6 @@ This project provisions several IAM roles to follow the least-privilege principl
 | vpc_id | ID of the existing VPC | string | n/a | yes |
 | subnet_ids | List of subnet IDs used by EC2/RDS | list(string) | n/a | yes |
 | db_subnet_group | Name of the RDS DB subnet group | string | n/a | yes |
-| CLOUDFRONT_DIST_ID | Backend CloudFront distribution ID | string | n/a | yes |
-| FRONTEND_CF_DOMAIN | Frontend CloudFront domain | string | n/a | yes |
-| BACKEND_ALIAS | Route53 alias name for backend | string | n/a | yes |
-| FRONTEND_ALIAS | Route53 alias name for frontend | string | n/a | yes |
-| ASG_NAME | Auto Scaling Group name (env var) | string | n/a | yes |
-| RDS_INSTANCE_ID | RDS instance ID (env var) | string | n/a | yes |
-| SECURITY_GROUP_IDS | Comma-separated SG IDs | string | n/a | yes |
 
 > 💡 This project expects an existing VPC and subnet list as inputs (vpc_id, subnet_ids).
 You can use the default VPC and its subnets for cost-efficiency and faster setup if you don’t require advanced networking features.
