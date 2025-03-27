@@ -51,6 +51,8 @@ These modules provide a flexible and automated foundation for hosting cost-effic
 - Security groups auto-updated with latest CloudFront IPs  
 - Route53 alias records for frontend/backend  
 
+> Lambda functions are triggered via CloudWatch Events for start/stop schedules and EC2 lifecycle events to update backend routing and security rules dynamically.
+
 
 ## Lambda Functions Explained
 
