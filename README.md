@@ -7,11 +7,14 @@ It does NOT include any application-specific code or business logic — it is de
 > ⚡️ **Lambda@Edge for backend origin routing**  
 > This module uses a low-cost Lambda@Edge function to dynamically route CloudFront requests to running EC2 instances. While it's a cost-effective alternative to using an Application Load Balancer (ALB), using ALB is still the recommended option for production-grade systems requiring robust health checks and native load balancing.
 
+
+
 - [EcoAuto AWS Terraform](#ecoauto-aws-terraform)
   - [Prerequisites](#prerequisites)
   - [Resource Types](#resource-types)
   - [Features](#features)
   - [Lambda Functions Explained](#lambda-functions-explained)
+  - [IAM Roles & Permissions](#iam-roles-&-permissions)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
   - [Deployment Notes](#%EF%B8%8F-deployment-notes)
@@ -47,8 +50,7 @@ These modules provide a flexible and automated foundation for hosting cost-effic
 - EC2 Auto Scaling with CPU-based policies  
 - S3 static website hosting with CloudFront (OAC secured)  
 - Lambda@Edge-based origin switching for backend EC2 (low-cost ALB alternative)  
-- IAM roles with least-privilege access
-- IAM policies follow least-privilege principle for Lambda and EC2 roles.
+- IAM roles and policies are designed to follow the least-privilege principle for all services, including Lambda and EC2
 - Security groups auto-updated with latest CloudFront IPs  
 - Route53 alias records for frontend/backend  
 
@@ -64,6 +66,17 @@ These modules provide a flexible and automated foundation for hosting cost-effic
 | `StartComputeResources`                | Starts EC2 and RDS instances at scheduled times              | EventBridge (cron)               |
 | `StopComputeResources`                 | Stops EC2 and RDS instances at scheduled times               | EventBridge (cron)               |
 | `EdgeOriginSelector` (Lambda@Edge)     | Dynamic origin routing to backend EC2 via CloudFront header  | CloudFront (origin-request)      |
+
+
+## IAM Roles & Permissions
+
+This project provisions several IAM roles to follow the least-privilege principle and enable secure execution of EC2, Lambda, and CloudFront tasks:
+
+- `ec2_basic_role`: EC2 read-only role attached to instances in the Auto Scaling Group
+- `scheduler_lambda_role`: Manages EC2/RDS lifecycle using CloudWatch EventBridge (start/stop, scale)
+- `lambda_edge_role`: Required for Lambda@Edge functions invoked by CloudFront origin requests
+- `infra_update_lambda_role`: Updates CloudFront origin configuration and Route 53 DNS records
+- `lambda_sg_update_role`: Updates security groups with current CloudFront IP ranges
 
 
 ## Inputs
@@ -99,7 +112,10 @@ These modules provide a flexible and automated foundation for hosting cost-effic
 | RDS_INSTANCE_ID | RDS instance ID (env var) | string | n/a | yes |
 | SECURITY_GROUP_IDS | Comma-separated SG IDs | string | n/a | yes |
 
-> 💡 You can use the default VPC and its subnets for cost-efficiency and faster setup if you don’t require advanced networking features.
+> 💡 This project expects an existing VPC and subnet list as inputs (vpc_id, subnet_ids).
+You can use the default VPC and its subnets for cost-efficiency and faster setup if you don’t require advanced networking features.
+> 🐳 **User-data Script**  
+> Update the `user-data/your-user-data-script.sh` script with your container image and Docker Hub details before deployment.
 
 ## Outputs:
 
@@ -120,6 +136,7 @@ These modules provide a flexible and automated foundation for hosting cost-effic
 ## ⚠️ Deployment Notes
 
 > ✅ Please read carefully before deploying to ensure a smooth setup.
+
 
 ### 1. Domain and Route 53 Setup
 - You must own a domain name and have a public hosted zone created in Route 53.

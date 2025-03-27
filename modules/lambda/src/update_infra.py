@@ -50,7 +50,7 @@ def lambda_handler(event, context):
                     'DomainName': public_dns_list[0],
                     'OriginPath': "",
                     'CustomOriginConfig': {
-                        'HTTPPort': 8088, #change to your backend port
+                        'HTTPPort': 8080, #change to your backend port
                         'HTTPSPort': 443,
                         'OriginProtocolPolicy': 'http-only',
                         'OriginSslProtocols': {
@@ -81,7 +81,7 @@ def lambda_handler(event, context):
                     'DomainName': dns,
                     'OriginPath': "",
                     'CustomOriginConfig': {
-                        'HTTPPort': 8088,  #change to your backend port
+                        'HTTPPort': 8080,  #change to your backend port
                         'HTTPSPort': 443,
                         'OriginProtocolPolicy': 'http-only',
                         'OriginSslProtocols': {

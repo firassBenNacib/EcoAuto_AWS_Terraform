@@ -4,7 +4,7 @@ import urllib.request
 import boto3
 
 REGION = 'your-region'
-PORT = 8088    # change to your backend port #  443 for HTTPS
+PORT = 8080    # change to your backend port #  443 for HTTPS
 MAX_RULES_PER_SG = 50
 
 def lambda_handler(event, context):
