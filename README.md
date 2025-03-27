@@ -14,7 +14,7 @@ It does NOT include any application-specific code or business logic — it is de
   - [Resource Types](#resource-types)
   - [Features](#features)
   - [Lambda Functions Explained](#lambda-functions-explained)
-  - [IAM Roles & Permissions](#iam-roles-&-permissions)
+  - [IAM Roles & Permissions](#iam-roles--permissions)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
   - [Deployment Notes](#%EF%B8%8F-deployment-notes)
