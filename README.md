@@ -1,6 +1,6 @@
 # EcoAuto AWS Terraform
 
-This is my terraform project that provisions a modular, cost-optimized, auto-scaled, and resilient AWS infrastructure. It is composed of multiple reusable Terraform modules for EC2 with Auto Scaling, RDS, S3 static hosting, CloudFront (frontend and backend distributions with Lambda@Edge), IAM roles, security groups, and CloudWatch automation for lifecycle and routing management.
+This is my terraform project that provisions a modular, cost-optimized, auto-scaled, and resilient AWS infrastructure. It is composed of multiple reusable Terraform modules for EC2 with Auto Scaling, RDS, S3 static hosting, CloudFront (frontend and backend distributions with Lambda@Edge), IAM roles, security groups, and CloudWatch automation for lifecycle and routing management using serverless Lambda functions.
 
 It does NOT include any application-specific code or business logic — it is designed to be plugged into a wide range of backend/frontend use cases.
 
@@ -11,9 +11,10 @@ It does NOT include any application-specific code or business logic — it is de
   - [Prerequisites](#prerequisites)
   - [Resource Types](#resource-types)
   - [Features](#features)
+  - [Lambda Functions Explained](#lambda-functions-explained)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
-  - [Deployment Notes](#deployment-notes)
+  - [Deployment Notes](#⚠️-deployment-notes)
   - [Authors](#authors)
 
 ## Prerequisites
