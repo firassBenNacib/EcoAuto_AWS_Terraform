@@ -107,6 +107,7 @@ This project provisions several IAM roles to follow the least-privilege principl
 
 > 💡 This project expects an existing VPC and subnet list as inputs (vpc_id, subnet_ids).
 You can use the default VPC and its subnets for cost-efficiency and faster setup if you don’t require advanced networking features.
+
 > 🐳 **User-data Script**  
 > Update the `user-data/your-user-data-script.sh` script with your container image and Docker Hub details before deployment.
 
