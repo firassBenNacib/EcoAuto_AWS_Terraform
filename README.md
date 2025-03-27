@@ -14,7 +14,7 @@ It does NOT include any application-specific code or business logic — it is de
   - [Lambda Functions Explained](#lambda-functions-explained)
   - [Inputs](#inputs)
   - [Outputs](#outputs)
-  - [Deployment Notes](#⚠️-deployment-notes)
+  - [Deployment Notes](#%EF%B8%8F-deployment-notes)
   - [Authors](#authors)
 
 ## Prerequisites
