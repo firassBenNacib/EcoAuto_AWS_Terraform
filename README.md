@@ -47,7 +47,8 @@ These modules provide a flexible and automated foundation for hosting cost-effic
 - EC2 Auto Scaling with CPU-based policies  
 - S3 static website hosting with CloudFront (OAC secured)  
 - Lambda@Edge-based origin switching for backend EC2 (low-cost ALB alternative)  
-- IAM roles with least-privilege access  
+- IAM roles with least-privilege access
+- IAM policies follow least-privilege principle for Lambda and EC2 roles.
 - Security groups auto-updated with latest CloudFront IPs  
 - Route53 alias records for frontend/backend  
 
@@ -56,13 +57,13 @@ These modules provide a flexible and automated foundation for hosting cost-effic
 
 ## Lambda Functions Explained
 
-| Function                               | Description                                             |
-|----------------------------------------|---------------------------------------------------------|
-| `UpdateEC2SecurityGroupFromCloudFrontIPs`| Updates EC2 SGs dynamically with latest CloudFront IPs. |
-| `UpdateInfraRouting`                   | Updates CloudFront origins and Route53 DNS entries.     |
-| `StartComputeResources`                | Starts EC2 ASG and RDS instances at scheduled times.    |
-| `StopComputeResources`                 | Stops EC2 ASG and RDS instances at scheduled times.     |
-| `EdgeOriginSelector`(Lambda@Edge)     | Routes traffic dynamically among EC2 backend origins.   |
+| Function                               | Description                                                  | Trigger                          |
+|----------------------------------------|--------------------------------------------------------------|----------------------------------|
+| `UpdateEC2SecurityGroupFromCloudFrontIPs` | Updates SG with latest CloudFront IPs                         | CloudWatch (EC2 state change)    |
+| `UpdateInfraRouting`                   | Updates backend origin and Route53 DNS records               | CloudWatch (EC2 lifecycle)       |
+| `StartComputeResources`                | Starts EC2 and RDS instances at scheduled times              | EventBridge (cron)               |
+| `StopComputeResources`                 | Stops EC2 and RDS instances at scheduled times               | EventBridge (cron)               |
+| `EdgeOriginSelector` (Lambda@Edge)     | Dynamic origin routing to backend EC2 via CloudFront header  | CloudFront (origin-request)      |
 
 
 ## Inputs
@@ -87,6 +88,18 @@ These modules provide a flexible and automated foundation for hosting cost-effic
 | min_size | Minimum number of EC2 instances | number | 1 | no |
 | max_size | Maximum number of EC2 instances | number | 2 | no |
 | cpu_target_value | Target CPU utilization for ASG | number | 70.0 | no |
+| vpc_id | ID of the existing VPC | string | n/a | yes |
+| subnet_ids | List of subnet IDs used by EC2/RDS | list(string) | n/a | yes |
+| db_subnet_group | Name of the RDS DB subnet group | string | n/a | yes |
+| CLOUDFRONT_DIST_ID | Backend CloudFront distribution ID | string | n/a | yes |
+| FRONTEND_CF_DOMAIN | Frontend CloudFront domain | string | n/a | yes |
+| BACKEND_ALIAS | Route53 alias name for backend | string | n/a | yes |
+| FRONTEND_ALIAS | Route53 alias name for frontend | string | n/a | yes |
+| ASG_NAME | Auto Scaling Group name (env var) | string | n/a | yes |
+| RDS_INSTANCE_ID | RDS instance ID (env var) | string | n/a | yes |
+| SECURITY_GROUP_IDS | Comma-separated SG IDs | string | n/a | yes |
+
+> 💡 You can use the default VPC and its subnets for cost-efficiency and faster setup if you don’t require advanced networking features.
 
 ## Outputs:
 
