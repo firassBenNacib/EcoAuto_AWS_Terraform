@@ -1,0 +1,12 @@
+*.tfstate
+*.tfstate.*
+.terraform/
+*.zip
+*.log
+*.bak
+*.swp
+*.pyc
+__pycache__/
+update_sgs_output.json
+update_infra_output.json
+terraform.tfvars
