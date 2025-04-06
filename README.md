@@ -18,6 +18,7 @@ It does NOT include any application-specific code or business logic — it is de
   - [Inputs](#inputs)
   - [Outputs](#outputs)
   - [Deployment Notes](#%EF%B8%8F-deployment-notes)
+  - [License](#license)
   - [Authors](#authors)
 
 ## Prerequisites
@@ -158,7 +159,9 @@ To upload files to S3 using the AWS CLI:
 aws s3 cp ./dist/ s3://your-s3-bucket-name/ --recursive
 
 ```
+## License
 
+This project is licensed under the [MIT License](./LICENSE).
 
 ## Authors
 
