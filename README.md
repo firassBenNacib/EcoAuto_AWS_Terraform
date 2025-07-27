@@ -2,7 +2,7 @@
 
 This is my terraform project that provisions a modular, cost-optimized, auto-scaled, and resilient AWS infrastructure. It is composed of multiple reusable Terraform modules for EC2 with Auto Scaling, RDS, S3 static hosting, CloudFront (frontend and backend distributions with Lambda@Edge), IAM roles, security groups, and CloudWatch automation for lifecycle and routing management using serverless Lambda functions.
 
-It does NOT include any application-specific code or business logic — it is designed to be plugged into a wide range of backend/frontend use cases.
+It does NOT include any application-specific code or business logic. it is designed to be plugged into a wide range of backend/frontend use cases.
 
 > ⚡️ **Lambda@Edge for backend origin routing**  
 > This module uses a low-cost Lambda@Edge function to dynamically route CloudFront requests to running EC2 instances. While it's a cost-effective alternative to using an Application Load Balancer (ALB), using ALB is still the recommended option for production-grade systems requiring robust health checks and native load balancing.
@@ -136,8 +136,8 @@ You can use the default VPC and its subnets for cost-efficiency and faster setup
 ### 1. Domain and Route 53 Setup
 - You must own a domain name and have a public hosted zone created in Route 53.
 - Update the following input variables accordingly:
-  - `route53_zone_id` – your hosted zone ID
-  - `frontend_alias` and `backend_alias` – e.g., `www.example.com`, `api.example.com`
+  - `route53_zone_id` - your hosted zone ID
+  - `frontend_alias` and `backend_alias` - e.g., `www.example.com`, `api.example.com`
 - The backend CloudFront alias must match the domain you plan to use for routing.
 
 ### 2. Lambda@Edge Deployment Region
