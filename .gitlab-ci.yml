@@ -1,0 +1,214 @@
+stages:
+  - validate
+  - security
+  - plan
+  - apply
+  - deploy-frontend
+  - destroy
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+    - when: never
+
+default:
+  image:
+    name: hashicorp/terraform:1.8.5
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  before_script:
+    - set -eu
+    - apk add --no-cache aws-cli jq >/dev/null
+    - |
+      if [ -n "${AWS_ROLE_ARN:-}" ] && [ -n "${CI_JOB_JWT_V2:-}" ]; then
+        CREDS_JSON="$(aws sts assume-role-with-web-identity \
+          --role-arn "${AWS_ROLE_ARN}" \
+          --role-session-name "gitlab-${CI_PIPELINE_ID}-${CI_JOB_ID}" \
+          --web-identity-token "${CI_JOB_JWT_V2}" \
+          --duration-seconds 3600)"
+        export AWS_ACCESS_KEY_ID="$(echo "${CREDS_JSON}" | jq -r '.Credentials.AccessKeyId')"
+        export AWS_SECRET_ACCESS_KEY="$(echo "${CREDS_JSON}" | jq -r '.Credentials.SecretAccessKey')"
+        export AWS_SESSION_TOKEN="$(echo "${CREDS_JSON}" | jq -r '.Credentials.SessionToken')"
+      elif [ -z "${AWS_ACCESS_KEY_ID:-}" ] || [ -z "${AWS_SECRET_ACCESS_KEY:-}" ]; then
+        echo "Set AWS_ROLE_ARN+CI_JOB_JWT_V2 (recommended) or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY."
+        exit 1
+      fi
+    - terraform --version
+    - rm -rf .terraform || true
+    - |
+      INIT_ARGS=""
+      if [ -n "${TF_BACKEND_CONFIG_FILE:-}" ]; then
+        test -f "${TF_BACKEND_CONFIG_FILE}" || (echo "Missing backend config file: ${TF_BACKEND_CONFIG_FILE}" && exit 1)
+        INIT_ARGS="${INIT_ARGS} -backend-config=${TF_BACKEND_CONFIG_FILE}"
+      fi
+      if [ -n "${TF_BACKEND_BUCKET:-}" ]; then
+        INIT_ARGS="${INIT_ARGS} -backend-config=bucket=${TF_BACKEND_BUCKET}"
+      fi
+      if [ -n "${TF_BACKEND_KEY:-}" ]; then
+        INIT_ARGS="${INIT_ARGS} -backend-config=key=${TF_BACKEND_KEY}"
+      fi
+      if [ -n "${TF_BACKEND_REGION:-}" ]; then
+        INIT_ARGS="${INIT_ARGS} -backend-config=region=${TF_BACKEND_REGION}"
+      fi
+      terraform init ${INIT_ARGS}
+    - terraform workspace select "${TF_WORKSPACE}" || terraform workspace new "${TF_WORKSPACE}"
+    - |
+      if [ -z "${TFVARS_FILE}" ]; then
+        CANDIDATE="terraform.${TF_WORKSPACE}.tfvars"
+        if [ -f "${CANDIDATE}" ]; then
+          TFVARS_FILE="${CANDIDATE}"
+        fi
+      fi
+      if [ -n "${TFVARS_FILE}" ]; then
+        test -f "${TFVARS_FILE}" || (echo "Missing var-file: ${TFVARS_FILE}" && exit 1)
+        export TF_VAR_FILE_ARG="-var-file=${TFVARS_FILE}"
+      else
+        export TF_VAR_FILE_ARG=""
+      fi
+      echo "Workspace=${TF_WORKSPACE} VarFile=${TFVARS_FILE:-<none>}"
+  cache:
+    key: "${CI_PROJECT_PATH_SLUG}-${CI_COMMIT_REF_SLUG}"
+    paths:
+      - .terraform/
+
+variables:
+  TF_IN_AUTOMATION: "1"
+  TF_WORKSPACE: "dev"
+  TFVARS_FILE: ""
+  TF_BACKEND_CONFIG_FILE: ""
+  TF_BACKEND_BUCKET: ""
+  TF_BACKEND_KEY: ""
+  TF_BACKEND_REGION: ""
+  TF_CLI_ARGS_init: "-input=false -lock-timeout=5m"
+  TF_CLI_ARGS_plan: "-input=false -lock-timeout=5m"
+  TF_CLI_ARGS_apply: "-input=false -lock-timeout=5m"
+  TF_CLI_ARGS_destroy: "-input=false -lock-timeout=5m"
+  GITHUB_REPO: ""
+  GITHUB_REF: "main"
+  GITHUB_WORKFLOW_FILE: "deploy.yml"
+  GITHUB_TOKEN: ""
+
+validate:
+  stage: validate
+  script:
+    - terraform fmt -check -recursive
+    - terraform validate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+
+tflint_scan:
+  stage: security
+  image:
+    name: ghcr.io/terraform-linters/tflint:v0.61.0
+    entrypoint:
+      - ""
+  before_script: []
+  script:
+    - tflint --init
+    - tflint --format compact > tflint.txt
+    - cat tflint.txt
+  artifacts:
+    when: always
+    paths:
+      - tflint.txt
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+
+tfsec_scan:
+  stage: security
+  image:
+    name: aquasec/tfsec:v1.28.14
+    entrypoint:
+      - ""
+  before_script: []
+  script:
+    - tfsec --no-color --minimum-severity HIGH --format json --out tfsec.json .
+    - cat tfsec.json
+  artifacts:
+    when: always
+    paths:
+      - tfsec.json
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+
+gitleaks_scan:
+  stage: security
+  image:
+    name: zricethezav/gitleaks:v8.24.2
+    entrypoint:
+      - ""
+  before_script: []
+  script:
+    - gitleaks detect --source . --no-git --redact --exit-code 1
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+
+plan:
+  stage: plan
+  script:
+    - terraform plan -out=tfplan ${TF_VAR_FILE_ARG}
+    - terraform show -no-color tfplan > tfplan.txt
+  artifacts:
+    when: always
+    paths:
+      - tfplan
+      - tfplan.txt
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+
+apply:
+  stage: apply
+  needs:
+    - job: plan
+      artifacts: true
+  script:
+    - terraform apply tfplan
+  environment:
+    name: "${TF_WORKSPACE}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $ALLOW_APPLY == "true"'
+      when: manual
+    - when: never
+  allow_failure: false
+
+deploy-frontend:
+  stage: deploy-frontend
+  before_script: []
+  needs:
+    - apply
+  script:
+    - test -n "${GITHUB_REPO}" || (echo "Set GITHUB_REPO to enable this job" && exit 1)
+    - test -n "${GITHUB_TOKEN}" || (echo "Set GITHUB_TOKEN to enable this job" && exit 1)
+    - apk add --no-cache curl
+    - |
+      curl -X POST \
+        -H "Accept: application/vnd.github.v3+json" \
+        -H "Authorization: token ${GITHUB_TOKEN}" \
+        "https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${GITHUB_WORKFLOW_FILE}/dispatches" \
+        -d "{\"ref\": \"${GITHUB_REF}\"}"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $ALLOW_FRONTEND_DEPLOY == "true" && $GITHUB_REPO != "" && $GITHUB_TOKEN != ""'
+      when: manual
+    - when: never
+
+destroy:
+  stage: destroy
+  script:
+    - terraform destroy ${TF_VAR_FILE_ARG}
+  environment:
+    name: "${TF_WORKSPACE}"
+    action: stop
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $ALLOW_DESTROY == "true"'
+      when: manual
+    - when: never

@@ -1,0 +1,4 @@
+---
+soft_fail: false
+exclude:
+  - aws-rds-enable-performance-insights

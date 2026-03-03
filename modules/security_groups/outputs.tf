@@ -1,14 +1,19 @@
-output "cloudfront_sg_ids" {
-  description = "List of CloudFront Security Group IDs"
-  value       = aws_security_group.cloudfront_sg[*].id
+output "backend_ec2_sg_id" {
+  description = "Security group ID for backend EC2 instances"
+  value       = aws_security_group.backend_ec2.id
 }
 
-output "ec2_rds_sg_id" {
-  description = "Security Group ID for EC2 to RDS communication"
-  value       = aws_security_group.ec2_rds_sg.id
+output "rds_sg_id" {
+  description = "Security group ID for RDS"
+  value       = aws_security_group.rds.id
 }
 
-output "rds_ec2_sg_id" {
-  description = "Security Group ID for RDS to EC2 communication"
-  value       = aws_security_group.rds_ec2_sg.id
+output "cloudfront_origin_prefix_list_id" {
+  description = "Managed prefix list ID used for CloudFront origin-facing ingress"
+  value       = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
+}
+
+output "cloudfront_origin_prefix_list_max_entries" {
+  description = "Max entries/weight of the CloudFront managed prefix list (impacts SG rule quotas)"
+  value       = data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.max_entries
 }

@@ -1,0 +1,7 @@
+# Copy to backend.hcl and fill values for your account.
+# Region must match the S3 bucket region.
+
+bucket         = "your-terraform-state-bucket"
+key            = "ecoauto/terraform.tfstate"
+region         = "us-east-1"
+encrypt        = true

@@ -1,35 +1,26 @@
-compatibility_mode             = "template"
-use_default_vpc                = false
-allow_default_vpc_outside_prod = false
-enable_observability_addons    = false # Additional cost: enables VPC Flow Logs + CloudFront access logs
-enable_vpc_flow_logs           = false
+compatibility_mode              = "workspace"
+use_default_vpc                 = false
+allow_default_vpc_outside_prod  = false
+enable_observability_addons     = false # Additional cost: enables VPC Flow Logs + CloudFront access logs
+enable_vpc_flow_logs            = false
 lockdown_default_security_group = true
-enable_snapshot_cleanup        = true
-snapshot_retention_days        = 14
-snapshot_min_keep_count        = 3
+enable_snapshot_cleanup         = true
+snapshot_retention_days         = 14
+snapshot_min_keep_count         = 3
 
-# Template mode domains
-frontend_domain                = "example.com"
-backend_domain                 = "api.example.com"
-backend_bootstrap_origin_domain = "placeholder-backend.example.com"
+workspace_domain                  = "example.com"
+workspace_backend_subdomain       = "api"
+workspace_bootstrap_origin_domain = "placeholder-backend.example.com"
+append_workspace_to_bucket_name   = true
 
-# Workspace mode (alternative):
-# compatibility_mode                = "workspace"
-# workspace_domain                  = "example.com"
-# workspace_backend_subdomain       = "api"
-# workspace_bootstrap_origin_domain = "placeholder-backend.example.com"
-# append_workspace_to_bucket_name   = true
-
-aws_region   = "eu-west-1"
-project_name = "ecoauto"
-vpc_cidr     = "10.0.0.0/16"
+aws_region = "eu-west-1"
+vpc_cidr   = "10.30.0.0/16"
 
 availability_zones      = ["eu-west-1a", "eu-west-1b"]
-public_app_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
-private_db_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
+public_app_subnet_cidrs = ["10.30.1.0/24", "10.30.2.0/24"]
+private_db_subnet_cidrs = ["10.30.11.0/24", "10.30.12.0/24"]
 
 bucket_name                                         = "front-yourapp"
-s3_force_destroy                                    = false
 enable_s3_kms_encryption                            = false
 enable_s3_lifecycle                                 = false
 s3_lifecycle_noncurrent_expiration_days             = 30
@@ -37,19 +28,23 @@ s3_lifecycle_abort_incomplete_multipart_upload_days = 7
 
 ec2_ami_id       = "ami-xxxxxxxxxxxxxxxxx"
 instance_type    = "t4g.nano"
-ec2_key_name     = "your-key-name"
-user_data_script = "your-user-data-script.sh"
+ec2_key_name     = "your-prod-key-name"
+user_data_script = "no_encryption_almalinux2023.sh"
 
 launch_template_prefix = "yourapp-template-"
 ec2_instance_name      = "YourAppBackend"
 asg_name               = "yourapp-asg"
 
-acm_cert_frontend = "arn:aws:acm:us-east-1:123456789012:certificate/frontend-cert-id"
 acm_cert_backend  = "arn:aws:acm:us-east-1:123456789012:certificate/backend-cert-id"
+acm_cert_frontend = "arn:aws:acm:us-east-1:123456789012:certificate/frontend-cert-id"
+
+frontend_domain = "example.com"
+backend_domain  = "api.example.com"
 
 backend_port                                       = 8088
 backend_origin_protocol_policy                     = "http-only"
 allow_backend_https_origin_with_dynamic_public_dns = false
+backend_bootstrap_origin_domain                    = "placeholder-backend.example.com"
 backend_cache_policy_id                            = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
 backend_origin_request_policy_id                   = "216adef6-5c7f-47e4-b989-5492eafa07d3"
 backend_geo_locations                              = ["US", "FR", "DE", "TN"]
@@ -74,8 +69,8 @@ rds_db_name                 = "YourApp"
 rds_instance_class          = "db.t4g.micro"
 kms_key_id                  = "arn:aws:kms:eu-west-1:123456789012:key/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 rds_backup_retention_period = 7
-rds_deletion_protection     = false
-rds_skip_final_snapshot     = true
+rds_deletion_protection     = true
+rds_skip_final_snapshot     = false
 enable_rds_iam_auth         = true
 
 route53_zone_id = "Z1234567890EXAMPLE"
